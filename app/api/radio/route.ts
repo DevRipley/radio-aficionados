@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     }
     
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Error obteniendo datos' },
       { status: 500 }
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       { message: 'Registro guardado exitosamente', data: newRecord },
       { status: 201 }
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Error guardando registro' },
       { status: 500 }
@@ -132,7 +132,7 @@ export async function DELETE(request: NextRequest) {
       { message: 'Registro eliminado exitosamente' },
       { status: 200 }
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Error eliminando registro' },
       { status: 500 }

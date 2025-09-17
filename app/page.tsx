@@ -21,7 +21,7 @@ interface RadioData {
 }
 
 export default function Home() {
-  const [data, setData] = useState<RadioData[]>([]);
+  const [data, setData] = useState<RadioData[]>([]); // eslint-disable-line @typescript-eslint/no-unused-vars
   const [filteredData, setFilteredData] = useState<RadioData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentSearch, setCurrentSearch] = useState('');

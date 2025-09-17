@@ -95,7 +95,6 @@ export default function RegistroForm({ onRecordSaved }: RegistroFormProps) {
       });
 
       if (response.ok) {
-        const result = await response.json();
         setMessage({ type: 'success', text: 'Registro guardado exitosamente' });
         limpiarFormulario();
         onRecordSaved();
@@ -103,7 +102,7 @@ export default function RegistroForm({ onRecordSaved }: RegistroFormProps) {
         const error = await response.json();
         setMessage({ type: 'error', text: error.error || 'Error al guardar el registro' });
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: 'Error de conexión' });
     } finally {
       setIsLoading(false);

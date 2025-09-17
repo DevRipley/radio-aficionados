@@ -53,7 +53,7 @@ export default function TablaRegistros({ data, onDataChange, isLoading }: TablaR
         const error = await response.json();
         alert(error.error || 'Error al eliminar el registro');
       }
-    } catch (error) {
+    } catch {
       alert('Error de conexión');
     }
   };

@@ -140,7 +140,7 @@ export default function BusquedaForm({ onSearch, isLoading, data }: BusquedaForm
       {searchTerm && (
         <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
           <p className="text-sm text-gray-800">
-            <strong>Buscando:</strong> "{searchTerm}" - {data.length} resultado{data.length !== 1 ? 's' : ''} encontrado{data.length !== 1 ? 's' : ''}
+            <strong>Buscando:</strong> &quot;{searchTerm}&quot; - {data.length} resultado{data.length !== 1 ? 's' : ''} encontrado{data.length !== 1 ? 's' : ''}
           </p>
         </div>
       )}
