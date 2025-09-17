@@ -16,7 +16,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<string | null>(null);
 
   // Credenciales hardcodeadas
-  const VALID_USERNAME = 'H14NLE';
+  const VALID_USERNAME = 'HI4NLE';
   const VALID_PASSWORD = 'Radioaficionado';
 
   useEffect(() => {
