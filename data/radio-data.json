@@ -1,0 +1,14 @@
+[
+  {
+    "orden": 1,
+    "qrz": "H14HFT",
+    "qra": "Hector Ferreira",
+    "banda": "40m",
+    "frecuencia": "7.088",
+    "rst": "5.9",
+    "hora": "11:32",
+    "horaUtc": "15:32",
+    "fecha": "2025-09-17",
+    "actividad": "Rueda del Cafe"
+  }
+]
