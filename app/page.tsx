@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Radio, Waves } from 'lucide-react';
 import RegistroForm from './components/RegistroForm';
 import BusquedaForm from './components/BusquedaForm';
 import TablaRegistros from './components/TablaRegistros';
 import RelojTiempo from './components/RelojTiempo';
+import Login from './components/Login';
+import Header from './components/Header';
+import { useAuth } from './contexts/AuthContext';
 
 interface RadioData {
   orden: number;
@@ -21,37 +24,66 @@ interface RadioData {
 }
 
 export default function Home() {
+  const { isAuthenticated } = useAuth();
   const [data, setData] = useState<RadioData[]>([]); // eslint-disable-line @typescript-eslint/no-unused-vars
   const [filteredData, setFilteredData] = useState<RadioData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentSearch, setCurrentSearch] = useState('');
 
-  // Cargar datos iniciales
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const fetchData = useCallback(async (searchTerm: string = '') => {
+    // Solo ejecutar si está autenticado
+    if (!isAuthenticated) {
+      return;
+    }
 
-  const fetchData = async (searchTerm: string = '') => {
     setIsLoading(true);
     try {
       const url = searchTerm 
         ? `/api/radio?search=${encodeURIComponent(searchTerm)}`
         : '/api/radio';
       
-      const response = await fetch(url);
+      // Agregar token de autenticación
+      const authToken = localStorage.getItem('radio-auth-token');
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      } else {
+        console.error('No se encontró token de autenticación');
+        return;
+      }
+      
+      const response = await fetch(url, { headers });
+      
       if (response.ok) {
         const result = await response.json();
         setData(result);
         setFilteredData(result);
+      } else if (response.status === 401) {
+        console.error('No autorizado - redirigiendo al login');
+        // El usuario no está autorizado, limpiar sesión
+        localStorage.removeItem('radio-auth');
+        localStorage.removeItem('radio-user');
+        localStorage.removeItem('radio-auth-token');
+        window.location.reload();
       } else {
-        console.error('Error fetching data');
+        console.error(`Error fetching data: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error de red:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAuthenticated]);
+
+  // Cargar datos iniciales solo cuando esté autenticado
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchData();
+    }
+  }, [isAuthenticated, fetchData]);
 
   const handleSearch = (searchTerm: string) => {
     setCurrentSearch(searchTerm);
@@ -68,27 +100,15 @@ export default function Home() {
     fetchData(currentSearch);
   };
 
+  // Si no está autenticado, mostrar login
+  if (!isAuthenticated) {
+    return <Login />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-lg border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-center gap-4">
-            <div className="flex items-center gap-3">
-              <Radio className="w-8 h-8 text-gray-700" />
-              <Waves className="w-6 h-6 text-gray-600" />
-            </div>
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-gray-900">
-                Sistema de Registros de Radio
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Gestión completa de contactos y actividades radioaficionados
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Header con logout */}
+      <Header />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

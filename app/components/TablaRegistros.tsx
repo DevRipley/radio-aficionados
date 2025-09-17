@@ -42,8 +42,17 @@ export default function TablaRegistros({ data, onDataChange, isLoading }: TablaR
     }
 
     try {
+      // Obtener token de autenticación
+      const authToken = localStorage.getItem('radio-auth-token');
+      const headers: HeadersInit = {};
+      
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+
       const response = await fetch(`/api/radio?orden=${orden}`, {
         method: 'DELETE',
+        headers,
       });
 
       if (response.ok) {
