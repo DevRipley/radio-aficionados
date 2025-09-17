@@ -1,34 +1,40 @@
 'use client';
 
 import { useState } from 'react';
+import { signIn } from 'next-auth/react';
 import { Radio, Waves, Lock, User, Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 
-export default function Login() {
+export default function LoginNextAuth() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
-  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Simular un pequeño delay para mejor UX
-    await new Promise(resolve => setTimeout(resolve, 500));
+    try {
+      const result = await signIn('credentials', {
+        username,
+        password,
+        redirect: false,
+      });
 
-    const success = login(username, password);
-    
-    if (!success) {
-      setError('Usuario o contraseña incorrectos');
-      setPassword(''); // Limpiar contraseña en caso de error
+      if (result?.error) {
+        setError('Usuario o contraseña incorrectos');
+        setPassword('');
+      } else {
+        // Login exitoso, NextAuth manejará la redirección
+        window.location.reload();
+      }
+    } catch {
+      setError('Error de conexión');
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   return (

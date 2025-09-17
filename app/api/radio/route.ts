@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { verifyAuth } from '../../utils/auth';
 
 interface RadioData {
   orden: number;
@@ -44,14 +43,6 @@ function writeData(data: RadioData[]): void {
 
 // GET - Obtener todos los datos
 export async function GET(request: NextRequest) {
-  // Verificar autenticación
-  if (!verifyAuth(request)) {
-    return NextResponse.json(
-      { error: 'No autorizado' },
-      { status: 401 }
-    );
-  }
-
   try {
     const data = readData();
     const url = new URL(request.url);
@@ -77,14 +68,6 @@ export async function GET(request: NextRequest) {
 
 // POST - Agregar nuevo registro
 export async function POST(request: NextRequest) {
-  // Verificar autenticación
-  if (!verifyAuth(request)) {
-    return NextResponse.json(
-      { error: 'No autorizado' },
-      { status: 401 }
-    );
-  }
-
   try {
     const body = await request.json();
     const data = readData();
@@ -122,14 +105,6 @@ export async function POST(request: NextRequest) {
 
 // DELETE - Eliminar registro
 export async function DELETE(request: NextRequest) {
-  // Verificar autenticación
-  if (!verifyAuth(request)) {
-    return NextResponse.json(
-      { error: 'No autorizado' },
-      { status: 401 }
-    );
-  }
-
   try {
     const url = new URL(request.url);
     const orden = url.searchParams.get('orden');

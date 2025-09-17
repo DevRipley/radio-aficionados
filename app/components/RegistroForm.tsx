@@ -86,19 +86,11 @@ export default function RegistroForm({ onRecordSaved }: RegistroFormProps) {
     setMessage(null);
 
     try {
-      // Obtener token de autenticación
-      const authToken = localStorage.getItem('radio-auth-token');
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-      
-      if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
-      }
-
       const response = await fetch('/api/radio', {
         method: 'POST',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(formData),
       });
 

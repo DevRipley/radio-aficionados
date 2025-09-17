@@ -1,14 +1,14 @@
 'use client';
 
 import { Radio, Waves, LogOut, User } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useSession, signOut } from 'next-auth/react';
 
-export default function Header() {
-  const { logout, user } = useAuth();
+export default function HeaderNextAuth() {
+  const { data: session } = useSession();
 
   const handleLogout = () => {
     if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
-      logout();
+      signOut();
     }
   };
 
@@ -35,7 +35,7 @@ export default function Header() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-gray-600">
               <User className="w-5 h-5" />
-              <span className="font-medium">{user}</span>
+              <span className="font-medium">{session?.user?.callsign || session?.user?.name}</span>
             </div>
             <button
               onClick={handleLogout}

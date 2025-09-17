@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Radio, Waves } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import RegistroForm from './components/RegistroForm';
 import BusquedaForm from './components/BusquedaForm';
 import TablaRegistros from './components/TablaRegistros';
 import RelojTiempo from './components/RelojTiempo';
-import Login from './components/Login';
-import Header from './components/Header';
-import { useAuth } from './contexts/AuthContext';
+import LoginNextAuth from './components/LoginNextAuth';
+import HeaderNextAuth from './components/HeaderNextAuth';
 
 interface RadioData {
   orden: number;
@@ -24,7 +24,7 @@ interface RadioData {
 }
 
 export default function Home() {
-  const { isAuthenticated } = useAuth();
+  const { data: session, status } = useSession();
   const [data, setData] = useState<RadioData[]>([]); // eslint-disable-line @typescript-eslint/no-unused-vars
   const [filteredData, setFilteredData] = useState<RadioData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +32,7 @@ export default function Home() {
 
   const fetchData = useCallback(async (searchTerm: string = '') => {
     // Solo ejecutar si está autenticado
-    if (!isAuthenticated) {
+    if (!session) {
       return;
     }
 
@@ -42,32 +42,12 @@ export default function Home() {
         ? `/api/radio?search=${encodeURIComponent(searchTerm)}`
         : '/api/radio';
       
-      // Agregar token de autenticación
-      const authToken = localStorage.getItem('radio-auth-token');
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-      
-      if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
-      } else {
-        console.error('No se encontró token de autenticación');
-        return;
-      }
-      
-      const response = await fetch(url, { headers });
+      const response = await fetch(url);
       
       if (response.ok) {
         const result = await response.json();
         setData(result);
         setFilteredData(result);
-      } else if (response.status === 401) {
-        console.error('No autorizado - redirigiendo al login');
-        // El usuario no está autorizado, limpiar sesión
-        localStorage.removeItem('radio-auth');
-        localStorage.removeItem('radio-user');
-        localStorage.removeItem('radio-auth-token');
-        window.location.reload();
       } else {
         console.error(`Error fetching data: ${response.status} ${response.statusText}`);
       }
@@ -76,14 +56,14 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [session]);
 
   // Cargar datos iniciales solo cuando esté autenticado
   useEffect(() => {
-    if (isAuthenticated) {
+    if (session) {
       fetchData();
     }
-  }, [isAuthenticated, fetchData]);
+  }, [session, fetchData]);
 
   const handleSearch = (searchTerm: string) => {
     setCurrentSearch(searchTerm);
@@ -100,15 +80,27 @@ export default function Home() {
     fetchData(currentSearch);
   };
 
+  // Mostrar loading mientras se inicializa NextAuth
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Si no está autenticado, mostrar login
-  if (!isAuthenticated) {
-    return <Login />;
+  if (!session) {
+    return <LoginNextAuth />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header con logout */}
-      <Header />
+      <HeaderNextAuth />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
