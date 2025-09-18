@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Radio, Waves } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import RegistroForm from './components/RegistroForm';
@@ -9,6 +9,7 @@ import TablaRegistros from './components/TablaRegistros';
 import RelojTiempo from './components/RelojTiempo';
 import LoginNextAuth from './components/LoginNextAuth';
 import HeaderNextAuth from './components/HeaderNextAuth';
+import { useLocalStorage } from './hooks/useLocalStorage';
 
 interface RadioData {
   orden: number;
@@ -25,60 +26,35 @@ interface RadioData {
 
 export default function Home() {
   const { data: session, status } = useSession();
-  const [data, setData] = useState<RadioData[]>([]); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const { data: allData, isLoading: storageLoading, addRecord, deleteRecord, searchRecords, exportData } = useLocalStorage();
   const [filteredData, setFilteredData] = useState<RadioData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [currentSearch, setCurrentSearch] = useState('');
 
-  const fetchData = useCallback(async (searchTerm: string = '') => {
-    // Solo ejecutar si está autenticado
-    if (!session) {
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const url = searchTerm 
-        ? `/api/radio?search=${encodeURIComponent(searchTerm)}`
-        : '/api/radio';
-      
-      const response = await fetch(url);
-      
-      if (response.ok) {
-        const result = await response.json();
-        setData(result);
-        setFilteredData(result);
-      } else {
-        console.error(`Error fetching data: ${response.status} ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error('Error de red:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [session]);
-
-  // Cargar datos iniciales solo cuando esté autenticado
-  useEffect(() => {
-    if (session) {
-      fetchData();
-    }
-  }, [session, fetchData]);
+  // Actualizar datos filtrados cuando cambian los datos o la búsqueda
+  const updateFilteredData = (searchTerm: string = '') => {
+    const results = searchRecords(searchTerm);
+    setFilteredData(results);
+  };
 
   const handleSearch = (searchTerm: string) => {
     setCurrentSearch(searchTerm);
-    fetchData(searchTerm);
+    updateFilteredData(searchTerm);
   };
 
   const handleRecordSaved = () => {
-    // Recargar datos después de guardar un nuevo registro
-    fetchData(currentSearch);
+    // Actualizar datos filtrados después de guardar
+    updateFilteredData(currentSearch);
   };
 
   const handleDataChange = () => {
-    // Recargar datos después de eliminar un registro
-    fetchData(currentSearch);
+    // Actualizar datos filtrados después de eliminar
+    updateFilteredData(currentSearch);
   };
+
+  // Actualizar filtros cuando cambian los datos del storage
+  useEffect(() => {
+    updateFilteredData(currentSearch);
+  }, [allData, currentSearch, searchRecords]);
 
   // Mostrar loading mientras se inicializa NextAuth
   if (status === 'loading') {
@@ -112,12 +88,12 @@ export default function Home() {
 
           {/* Formulario de Registro */}
           <section>
-            <RegistroForm onRecordSaved={handleRecordSaved} />
+            <RegistroForm onRecordSaved={handleRecordSaved} addRecord={addRecord} />
           </section>
 
           {/* Formulario de Búsqueda */}
           <section>
-            <BusquedaForm onSearch={handleSearch} isLoading={isLoading} data={filteredData} />
+            <BusquedaForm onSearch={handleSearch} isLoading={storageLoading} data={filteredData} exportData={exportData} />
           </section>
 
           {/* Tabla de Registros */}
@@ -125,7 +101,8 @@ export default function Home() {
             <TablaRegistros 
               data={filteredData} 
               onDataChange={handleDataChange}
-              isLoading={isLoading}
+              isLoading={storageLoading}
+              deleteRecord={deleteRecord}
             />
           </section>
         </div>

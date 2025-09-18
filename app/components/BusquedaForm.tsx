@@ -21,19 +21,21 @@ interface BusquedaFormProps {
   onSearch: (searchTerm: string) => void;
   isLoading: boolean;
   data: RadioData[];
+  exportData: () => RadioData[];
 }
 
-export default function BusquedaForm({ onSearch, isLoading, data }: BusquedaFormProps) {
+export default function BusquedaForm({ onSearch, isLoading, data, exportData }: BusquedaFormProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const exportToExcel = () => {
-    if (data.length === 0) {
+    const allData = exportData();
+    if (allData.length === 0) {
       alert('No hay datos para exportar');
       return;
     }
 
     // Preparar los datos para Excel
-    const excelData = data.map(item => ({
+    const excelData = allData.map(item => ({
       'ORDEN': item.orden,
       'QRZ': item.qrz,
       'QRA': item.qra,

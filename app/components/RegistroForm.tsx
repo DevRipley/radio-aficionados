@@ -15,11 +15,25 @@ interface FormData {
   actividad: string;
 }
 
-interface RegistroFormProps {
-  onRecordSaved: () => void;
+interface RadioData {
+  orden: number;
+  qrz: string;
+  qra: string;
+  banda: string;
+  frecuencia: string;
+  rst: string;
+  hora: string;
+  horaUtc: string;
+  fecha: string;
+  actividad: string;
 }
 
-export default function RegistroForm({ onRecordSaved }: RegistroFormProps) {
+interface RegistroFormProps {
+  onRecordSaved: () => void;
+  addRecord: (record: Omit<RadioData, 'orden'>) => RadioData;
+}
+
+export default function RegistroForm({ onRecordSaved, addRecord }: RegistroFormProps) {
   const [formData, setFormData] = useState<FormData>({
     qrz: '',
     qra: '',
@@ -86,24 +100,13 @@ export default function RegistroForm({ onRecordSaved }: RegistroFormProps) {
     setMessage(null);
 
     try {
-      const response = await fetch('/api/radio', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        setMessage({ type: 'success', text: 'Registro guardado exitosamente' });
-        limpiarFormulario();
-        onRecordSaved();
-      } else {
-        const error = await response.json();
-        setMessage({ type: 'error', text: error.error || 'Error al guardar el registro' });
-      }
+      // Guardar directamente en localStorage
+      addRecord(formData);
+      setMessage({ type: 'success', text: 'Registro guardado exitosamente' });
+      limpiarFormulario();
+      onRecordSaved();
     } catch {
-      setMessage({ type: 'error', text: 'Error de conexión' });
+      setMessage({ type: 'error', text: 'Error al guardar el registro' });
     } finally {
       setIsLoading(false);
     }

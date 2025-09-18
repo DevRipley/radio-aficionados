@@ -20,9 +20,10 @@ interface TablaRegistrosProps {
   data: RadioData[];
   onDataChange: () => void;
   isLoading: boolean;
+  deleteRecord: (orden: number) => boolean;
 }
 
-export default function TablaRegistros({ data, onDataChange, isLoading }: TablaRegistrosProps) {
+export default function TablaRegistros({ data, onDataChange, isLoading, deleteRecord: deleteRecordFn }: TablaRegistrosProps) {
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
   const toggleRowExpansion = (orden: number) => {
@@ -42,19 +43,15 @@ export default function TablaRegistros({ data, onDataChange, isLoading }: TablaR
     }
 
     try {
-      const response = await fetch(`/api/radio?orden=${orden}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
+      const success = deleteRecordFn(orden);
+      if (success) {
         onDataChange();
         alert('Registro eliminado exitosamente');
       } else {
-        const error = await response.json();
-        alert(error.error || 'Error al eliminar el registro');
+        alert('Error: Registro no encontrado');
       }
     } catch {
-      alert('Error de conexión');
+      alert('Error al eliminar el registro');
     }
   };
 
